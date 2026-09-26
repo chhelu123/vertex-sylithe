@@ -1,0 +1,25 @@
+# Secrets & local config
+.env
+.env.*
+!.env.example
+*.pem
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Node / build output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Logs & OS files
+*.log
+.DS_Store
+._*
+.idea/
+.vscode/*
+!.vscode/extensions.json

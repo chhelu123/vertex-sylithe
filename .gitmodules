@@ -1,8 +1,0 @@
-[submodule "sylithe-backend"]
-	path = sylithe-backend
-	url = https://github.com/chhelu123/sylithe-backend.git
-	branch = main
-[submodule "sylithe-frontend"]
-	path = sylithe-frontend
-	url = https://github.com/chhelu123/sylithe-frontend.git
-	branch = main

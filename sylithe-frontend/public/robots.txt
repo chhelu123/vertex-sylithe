@@ -1,0 +1,39 @@
+# robots.txt — sylithe.com
+# https://www.robotstxt.org/
+
+# ── Allow all well-behaved crawlers ──────────────────────────────────────────
+User-agent: *
+Allow: /
+Allow: /llms.txt
+
+# Block private/app-shell routes — these require authentication
+Disallow: /dashboard/
+Disallow: /projects
+Disallow: /chm-verification
+
+# ── Allow Google specifically to crawl images ─────────────────────────────────
+User-agent: Googlebot-Image
+Allow: /
+
+# ── AI / LLM Crawlers ────────────────────────────────────────────────────────
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# ── Sitemap ───────────────────────────────────────────────────────────────────
+Sitemap: https://sylithe.com/sitemap.xml
+
+# ── LLM Discovery ────────────────────────────────────────────────────────────
+# LLM-readable summary: https://sylithe.com/llms.txt

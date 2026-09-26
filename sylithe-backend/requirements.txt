@@ -1,0 +1,13 @@
+flask
+flask-cors
+pymongo[srv]
+resend
+python-dotenv
+gunicorn
+bcrypt
+PyJWT
+requests
+earthengine-api
+pypdf
+jsonschema
+openpyxl

@@ -1,0 +1,25 @@
+# Environments
+.env
+.env.*
+!.env.example
+env.example
+
+# Credentials and Keys
+*.json
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.Python
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.venv/

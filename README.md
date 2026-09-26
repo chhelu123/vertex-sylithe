@@ -476,11 +476,11 @@ flowchart TB
 
 ```text
 vertex-sylithe/
-├── sylithe-backend/        Flask API, agents, pipelines, engines        (git submodule)
+├── sylithe-backend/        Flask API, agents, pipelines, engines
 │   ├── routes/             companies · project_intel · research · calculator · auth …
 │   └── services/           ai · company_agents · brsr_xbrl · nse · company_rating · company_pathway ·
 │                           sbti · project_rating · offsetsdb · methodology_kb · documents · evidence · jobs
-├── sylithe-frontend/       React app                                    (git submodule)
+├── sylithe-frontend/       React app — public website + platform
 │   └── src/
 │       ├── site/           public website
 │       └── sylithe/        platform: Overview · Companies · Pathway · Projects · Compare · Research · Calculator
@@ -498,7 +498,7 @@ vertex-sylithe/
 **Prerequisites:** Python 3.11+, Node 20+, MongoDB, a DeepSeek API key.
 
 ```bash
-git clone --recurse-submodules https://github.com/chhelu123/vertex-sylithe.git
+git clone https://github.com/chhelu123/vertex-sylithe.git
 cd vertex-sylithe
 ```
 

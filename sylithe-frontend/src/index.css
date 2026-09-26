@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --font-heading: 'Space Grotesk', sans-serif;
+        --font-body: 'Space Grotesk', sans-serif;
+        --font-mono: 'DM Mono', monospace;
+        --ds-background-100: hsla(0, 0%, 100%, 1);
+        --geist-success: #16a34a;
+        --geist-error: #ee0000;
+        --geist-warning: #f5a623;
+        --geist-violet: #7928ca;
+        --geist-foreground: #000;
+    }
+
+    .dark {
+        --ds-background-100: hsla(0, 0%, 4%, 1);
+        --geist-error: #ff0000;
+        --geist-foreground: #fff;
+    }
+}
+
+/* Basic body reset */
+body {
+  @apply bg-[#F1F1F1] text-sylitheDark font-sans antialiased;
+}
+
+/* Custom Animation for "trees moving from top" effect */
+@keyframes drone-pan {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform: scale(1.15) translate(-2%, -2%);
+  }
+}
+
+.animate-drone-pan {
+  animation: drone-pan 30s linear infinite alternate;
+}
+
+/* Floating arrow animation for pipeline section */
+@keyframes arrowFloat {
+
+  0%,
+  100% {
+    transform: translateX(0px);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: translateX(6px);
+    opacity: 1;
+  }
+}
+
+.animate-arrow-float {
+  animation: arrowFloat 2s ease-in-out infinite;
+}
