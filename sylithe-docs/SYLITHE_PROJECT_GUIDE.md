@@ -272,6 +272,40 @@ context. The UI reveals the answer word by word.
   "label": "Reported|Calculated|Inference|Model estimate|Data not found", "reasoning_summary": "…" }
 ```
 
+### 6.7 The agent harness — end-to-end flow
+
+The harness wraps every agent: orchestration, context building, the model gateway, validation, caching, telemetry and
+failure handling. Full specification (with every agent's verbatim system prompt, schemas, limits and failure
+handling): [`architecture/AGENT_HARNESS.md`](architecture/AGENT_HARNESS.md).
+
+```mermaid
+flowchart LR
+    U([User clicks<br/>Run agents]) --> J[Job harness<br/>one job per subject]
+    J --> D[Pipeline DAG]
+    D --> T[Deterministic tools<br/>NSE · XBRL · registry · SBTi]
+    D --> C[Context builder<br/>top pages · scoped evidence]
+    C --> G[Gateway<br/>cache → DeepSeek → schema + repair]
+    G --> V[Validators<br/>quotes · citations · domain rules]
+    T --> P[Plausibility checks]
+    V --> S[(Evidence · metrics · ratings)]
+    P --> S
+    G --> R[(agent_runs<br/>tokens · cost · latency)]
+    D --> L[(Job steps)] --> UI([Live progress in UI])
+    S --> E[Engines<br/>KPIs · rating · pathway]
+    E --> OUT([Company / project page<br/>every number clickable to its source])
+```
+
+| Harness component | What it does | Key settings |
+|---|---|---|
+| Job harness | Runs pipelines in the background, records each step and cost, dedupes triggers, expires stalled jobs | unique running job per subject · 20 min stale timeout |
+| Context builder | Chooses the pages / evidence each agent sees | 16 BRSR pages · 18 annual-report pages · ~1k tokens per dimension agent |
+| Model gateway | One entry point for every LLM call | T1 flash / T2 pro · effort low · 180 s × 3 attempts · 1 repair turn |
+| Result cache | Content-addressed; identical input → stored output | key = agent + prompt version + model + input |
+| Validators | Schema, quote-on-page, citation scope, legal-cost rule, Scope 2 basis | failing items → Low confidence or dropped |
+| Plausibility checks | Catch unit errors in company filings | revenue, intensities, energy vs emissions, Scope 3 = 0, waste |
+| Telemetry | Logs every call | tokens, cached tokens, reasoning tokens, latency, cost, errors |
+| Research tool loop | Read-only tools, cited answers | ≤ 8 steps · 12-turn memory |
+
 ---
 
 ## 7. How we reduce cost
@@ -381,4 +415,4 @@ First run: log in as an admin → **Project Ratings → Load registry data** (Of
 the first company analysis. Then research any NSE company from **Company Intelligence**.
 
 Related documents: `methodology/COMPANY_CARBON_RATING.md`, `methodology/PROJECT_RATING.md`,
-`architecture/AI_AGENT_ARCHITECTURE.md`, `architecture/IMPLEMENTATION_M1_M2.md`.
+`architecture/AGENT_HARNESS.md`, `architecture/AI_AGENT_ARCHITECTURE.md`, `architecture/IMPLEMENTATION_M1_M2.md`.

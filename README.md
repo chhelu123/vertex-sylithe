@@ -22,19 +22,20 @@
 
 1. [The AI agents](#1-the-ai-agents)
 2. [Agent orchestration & workflows](#2-agent-orchestration--workflows)
-3. [What Sylithe produces](#3-what-sylithe-produces)
-4. [Company analysis — BRSR, annual report, CSR](#4-company-analysis--brsr-annual-report-csr)
-5. [Emissions pathway — emitting vs should-emit](#5-emissions-pathway--emitting-vs-should-emit)
-6. [Carbon project rating](#6-carbon-project-rating)
-7. [Results on real companies](#7-results-on-real-companies)
-8. [Cost — how we keep it to cents](#8-cost--how-we-keep-it-to-cents)
-9. [Speed — how we keep latency low](#9-speed--how-we-keep-latency-low)
-10. [Accuracy & anti-hallucination](#10-accuracy--anti-hallucination)
-11. [Research foundation](#11-research-foundation)
-12. [Architecture & repository layout](#12-architecture--repository-layout)
-13. [Getting started](#13-getting-started)
-14. [API reference](#14-api-reference)
-15. [Roadmap & limitations](#15-roadmap--limitations)
+3. [The agent harness](#3-the-agent-harness)
+4. [What Sylithe produces](#4-what-sylithe-produces)
+5. [Company analysis — BRSR, annual report, CSR](#5-company-analysis--brsr-annual-report-csr)
+6. [Emissions pathway — emitting vs should-emit](#6-emissions-pathway--emitting-vs-should-emit)
+7. [Carbon project rating](#7-carbon-project-rating)
+8. [Results on real companies](#8-results-on-real-companies)
+9. [Cost — how we keep it to cents](#9-cost--how-we-keep-it-to-cents)
+10. [Speed — how we keep latency low](#10-speed--how-we-keep-latency-low)
+11. [Accuracy & anti-hallucination](#11-accuracy--anti-hallucination)
+12. [Research foundation](#12-research-foundation)
+13. [Architecture & repository layout](#13-architecture--repository-layout)
+14. [Getting started](#14-getting-started)
+15. [API reference](#15-api-reference)
+16. [Roadmap & limitations](#16-roadmap--limitations)
 
 ---
 
@@ -189,7 +190,100 @@ flowchart LR
 
 ---
 
-## 3. What Sylithe produces
+## 3. The agent harness
+
+The harness is everything around the model — scheduling, context building, the model gateway, validation, caching,
+telemetry and failure handling. **Full specification with every agent's verbatim prompt:**
+[`sylithe-docs/architecture/AGENT_HARNESS.md`](sylithe-docs/architecture/AGENT_HARNESS.md).
+
+### 3.1 Harness layers
+
+```mermaid
+flowchart TB
+    subgraph L1[1 · Trigger]
+        UI([UI action]) --> API[REST endpoint · JWT]
+    end
+    subgraph L2[2 · Orchestration]
+        API --> JOBS[Job harness<br/>one running job per subject]
+        JOBS --> DAG[Pipeline DAG<br/>fixed, code-controlled]
+    end
+    subgraph L3[3 · Context engineering]
+        DAG --> TOOLS[Deterministic tools<br/>NSE · XBRL · registry · SBTi · formulas]
+        DAG --> CTX[Context builders<br/>page selection · evidence scoping]
+    end
+    subgraph L4[4 · Model gateway]
+        CTX --> GW[call_json / run_tools]
+        GW --> CACHE{Result cache}
+        CACHE -- miss --> LLM[DeepSeek T1 / T2]
+        LLM --> SCHEMA[Schema validation<br/>+ 1 repair turn]
+    end
+    subgraph L5[5 · Validation]
+        SCHEMA --> QV[Quote on cited page]
+        SCHEMA --> CV[Citations within agent's scope]
+        TOOLS --> PC[Filing plausibility checks]
+    end
+    subgraph L6[6 · Persistence & telemetry]
+        QV & CV & PC --> STORE[(evidence · metrics · ratings)]
+        GW --> RUNS[(agent_runs: tokens · cost · latency)]
+        DAG --> STEPS[(job steps → live UI)]
+    end
+```
+
+### 3.2 The life of one LLM call
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Pipeline node
+    participant G as Gateway
+    participant C as Result cache
+    participant M as DeepSeek
+    participant V as Validator
+    P->>G: agent · system prompt · data blocks · JSON schema · tier · effort
+    G->>C: sha256(agent · prompt version · model · input)
+    alt hit
+        C-->>P: cached result ($0, ~ms)
+    else miss
+        G->>M: system + untrusted-data rule + schema, user data (≤3 attempts, back-off)
+        M-->>G: JSON + token usage
+        G->>V: validate against schema
+        opt invalid
+            G->>M: one repair turn with validator errors
+        end
+        G->>C: store result
+        G-->>P: validated result (tokens, cost, latency logged)
+    end
+```
+
+### 3.3 Job lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> running: start_job (unique per subject)
+    running --> running: step / add_cost
+    running --> done: pipeline returns
+    running --> failed: error
+    running --> failed: stale 20 min
+    done --> [*]
+    failed --> [*]
+```
+
+### 3.4 Harness settings
+
+| Setting | Value |
+|---|---|
+| Models | T1 `deepseek-flash` (all agents) · T2 `deepseek-v4-pro` (adjudicator only) |
+| Output budgets | 12k tokens document agents · 4k dimension agents · 3k adjudicator · 6k per research step |
+| Context budgets | 16 BRSR pages / 70k chars · 18 annual-report pages / 80k chars · ~1k tokens per dimension agent |
+| Reliability | 180 s LLM timeout × 3 attempts · 1 schema-repair turn · 180 s download deadline · 20 min stale-job expiry |
+| Concurrency | 10 dimension agents on 6 threads · one running job per subject |
+| Research agent | ≤ 8 tool steps · 12-turn memory · 6 read-only tools |
+| Caches | AI results (content hash) · parsed PDFs (URL) · NSE list & SBTi (7 days) · registry (on refresh) |
+| Guardrails | untrusted-data rule · schema · quote verification · citation scope · filing plausibility · legal-cost rule · ±1-notch adjudication · versioning · human review |
+
+---
+
+## 4. What Sylithe produces
 
 | Product | For | Output |
 |---|---|---|
@@ -203,7 +297,7 @@ due-diligence process · about. Platform (login): `/sylithe`.
 
 ---
 
-## 4. Company analysis — BRSR, annual report, CSR
+## 5. Company analysis — BRSR, annual report, CSR
 
 | Source | Section | What Sylithe extracts |
 |---|---|---|
@@ -218,7 +312,7 @@ five dimensions can be scored.
 
 ---
 
-## 5. Emissions pathway — emitting vs should-emit
+## 6. Emissions pathway — emitting vs should-emit
 
 ```mermaid
 flowchart LR
@@ -237,7 +331,7 @@ count toward reduction targets.
 
 ---
 
-## 6. Carbon project rating
+## 7. Carbon project rating
 
 | Dimension | Weight | Dimension | Weight |
 |---|---:|---|---:|
@@ -254,7 +348,7 @@ Grades: AAA ≥ 85 · AA ≥ 75 · A ≥ 65 · BBB ≥ 55 · BB ≥ 45 · B ≥ 
 
 ---
 
-## 7. Results on real companies
+## 8. Results on real companies
 
 Latest filings (BRSR FY2025-26), produced end-to-end by the agents:
 
@@ -274,7 +368,7 @@ Full analysis per company: [`sylithe-docs/SYLITHE_PROJECT_GUIDE.md`](sylithe-doc
 
 ---
 
-## 8. Cost — how we keep it to cents
+## 9. Cost — how we keep it to cents
 
 | Job | Measured AI cost |
 |---|---|
@@ -306,7 +400,7 @@ flowchart LR
 
 ---
 
-## 9. Speed — how we keep latency low
+## 10. Speed — how we keep latency low
 
 | Job | Measured time |
 |---|---|
@@ -325,7 +419,7 @@ flowchart LR
 
 ---
 
-## 10. Accuracy & anti-hallucination
+## 11. Accuracy & anti-hallucination
 
 * **Quote verification** — every AI-extracted value carries a verbatim quote that code finds on the cited page.
 * **Citation validation** — agents can only cite evidence ids they were given; others are removed and counted.
@@ -338,7 +432,7 @@ flowchart LR
 
 ---
 
-## 11. Research foundation
+## 12. Research foundation
 
 | Topic | Finding used | Source |
 |---|---|---|
@@ -356,7 +450,7 @@ More: [`sylithe-docs/research/`](sylithe-docs/research) · [`sylithe-docs/method
 
 ---
 
-## 12. Architecture & repository layout
+## 13. Architecture & repository layout
 
 ```mermaid
 flowchart TB
@@ -393,13 +487,13 @@ vertex-sylithe/
 └── sylithe-docs/
     ├── SYLITHE_PROJECT_GUIDE.md   full project guide
     ├── methodology/               company & project rating methodologies
-    ├── architecture/              agent architecture, implementation notes
+    ├── architecture/              AGENT_HARNESS.md (full harness spec), agent architecture, implementation notes
     └── research/                  market, data-source and cost research
 ```
 
 ---
 
-## 13. Getting started
+## 14. Getting started
 
 **Prerequisites:** Python 3.11+, Node 20+, MongoDB, a DeepSeek API key.
 
@@ -437,7 +531,7 @@ automatically on the first company analysis. Then open **Company Intelligence** 
 
 ---
 
-## 14. API reference
+## 15. API reference
 
 | Area | Endpoints |
 |---|---|
@@ -450,7 +544,7 @@ automatically on the first company analysis. Then open **Company Intelligence** 
 
 ---
 
-## 15. Roadmap & limitations
+## 16. Roadmap & limitations
 
 - [x] Company intelligence from BRSR XBRL + PDFs + annual reports
 - [x] Explainable project ratings across 7 registries
