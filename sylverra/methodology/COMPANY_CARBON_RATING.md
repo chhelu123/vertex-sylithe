@@ -56,3 +56,18 @@ Each recompute appends a new record to `company_ratings` with its methodology ve
 - No sector benchmarks: intensity is scored on its trend, not its level against peers.
 - Coverage is limited to NSE-listed equities (the NSE filings APIs are the discovery source).
 - Litigation is checked against annual-report pages only. There is no web or court-database search yet.
+
+## Emissions pathway & carbon suggestion (Sylithe Emissions Pathway v0.1)
+
+Implemented in `sylithe-backend/services/company_pathway.py`, with SBTi data from `services/sbti.py`.
+
+| Question | How it is answered |
+|---|---|
+| How much is the company emitting? | Disclosed Scope 1+2 per period (BRSR) |
+| How much should it emit? | 1.5°C pathway: **4.2% of base-year emissions per year, linear** (SBTi absolute contraction approach); net zero = **≥90% below base year by 2050** |
+| Its own target | An SBTi-validated Scope 1+2 near-term target from the [SBTi Target Dashboard](https://sciencebasedtargets.org/target-dashboard), when base-year emissions are disclosed; otherwise the disclosed net-zero or reduction target (linear) |
+| Gap | Actual − 1.5°C pathway for each disclosed year; cut needed by 2030 |
+| Levers | Rules over the company's own data: Scope 2 share and renewable %, Scope 1 share, YoY change, Scope 3 disclosure, SBTi status (not committed / commitment removed) |
+| Carbon suggestion | Sized to the current gap (or to net-zero residual if on track). Projects matched in the same country: removals before avoidance, methodologies with cited integrity concerns excluded, Sylithe grades below BBB excluded. **Credits never count toward reduction targets.** |
+
+SBTi data (companies and targets) is refreshed weekly and matched by ISIN first, then by exact normalised name, so a subsidiary (e.g. Reliance Jio) is never attached to its parent.
