@@ -1,4 +1,4 @@
-# Sylverra AI Agent Architecture
+# Sylithe AI Agent Architecture
 
 > Phases 3–4 (spec §15, §28–32, §51–53). Built for **cost ↓, latency ↓, accuracy ↑**.
 > Inputs: `CURRENT_ARCHITECTURE.md`, `research/AI_COST_LATENCY_RESEARCH.md`.

@@ -1,7 +1,7 @@
 # AI Cost, Latency & Performance Research
 
 > Spec §42, §43 (AI), §28. Date accessed: **2026-09-26**.
-> Goal: the Sylverra agent layer must be **cheap per project, fast to first result, and accurate** — in that order of design pressure, never at the expense of the no-hallucination rule (§52).
+> Goal: the Sylithe agent layer must be **cheap per project, fast to first result, and accurate** — in that order of design pressure, never at the expense of the no-hallucination rule (§52).
 
 ---
 
@@ -32,7 +32,7 @@ For an agentic rating pipeline, spend is dominated by **input tokens re-read by 
 
 So the design levers, ranked by impact:
 
-| # | Lever | Cuts | How in Sylverra |
+| # | Lever | Cuts | How in Sylithe |
 |---|---|---|---|
 | 1 | **Don't call an LLM when code can answer** | cost, latency, hallucination | XBRL parser for BRSR KPIs; GEE stats for land; registry API for issuance. LLM only *interprets* numbers it's given. |
 | 2 | **Parse once, retrieve per agent** | cost (≈10×) | PDD parsed & chunked once; each dimension agent gets only its top-k relevant chunks (~4–8k tokens), not the whole PDD. |

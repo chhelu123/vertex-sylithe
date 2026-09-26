@@ -1,4 +1,4 @@
-# Sylverra — Modules 1 & 2 implementation (2026-09-26)
+# Sylithe — Modules 1 & 2 implementation (2026-09-26)
 
 Module 3 (investment and land intelligence) is **out of scope** for this build.
 
@@ -29,11 +29,11 @@ cd sylithe-backend
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 # .env: MONGO_URI, JWT_SECRET, DEEPSEEK_API_KEY (see .env.example)
 .venv/bin/python app.py            # :5001
-# load registry data once (admin): POST /api/intel/registry/refresh  (or the button on /sylverra/projects)
+# load registry data once (admin): POST /api/intel/registry/refresh  (or the button on /sylithe-docs/projects)
 
 # frontend
 cd sylithe-frontend && npm install
-VITE_API_URL=http://localhost:5001 npm run dev   # open http://localhost:5173/sylverra (log in first)
+VITE_API_URL=http://localhost:5001 npm run dev   # open http://localhost:5173/sylithe (log in first)
 ```
 
 ## API
@@ -45,9 +45,9 @@ VITE_API_URL=http://localhost:5001 npm run dev   # open http://localhost:5173/sy
 | Shared | `GET /api/evidence/:id` · `GET /api/jobs/:id` · `GET /api/overview` · `POST /api/research/ask` · `GET /api/research/sessions[/:id]` |
 | Calculator | `GET/POST /api/calculator/inventories` · `GET/DELETE /:id` · `POST /:id/lines` · `POST /:id/upload` · `GET /api/calculator/factors` |
 
-## Frontend (`/sylverra`)
+## Frontend (`/sylithe`)
 
-Overview · Company Intelligence · Company profile · Carbon Calculator · Project Ratings · Project detail · Compare · AI Research Agent · Methodology. Code is in `sylithe-frontend/src/sylverra/`.
+Overview · Company Intelligence · Company profile · Carbon Calculator · Project Ratings · Project detail · Compare · AI Research Agent · Methodology. Code is in `sylithe-frontend/src/sylithe-docs/`.
 
 ## Measured on real data (local run)
 

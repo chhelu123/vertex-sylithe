@@ -1,6 +1,6 @@
-# Current Architecture — Sylithe (baseline for Sylverra)
+# Current Architecture — Sylithe (baseline for Sylithe)
 
-> Phase 1 deliverable of `SYLVERRA_CLAUDE_CODE_MASTER_SPEC.md` (§35, §46).
+> Phase 1 deliverable of `SYLITHE_CLAUDE_CODE_MASTER_SPEC.md` (§35, §46).
 > Inspected: `sylithe-frontend` @ main, `sylithe-backend` @ main (both 2026-09-26).
 > Lens for this audit: **AI-first, with cost, latency and performance as primary constraints.**
 
@@ -58,9 +58,9 @@ Size: backend ≈ 4.1 k lines Python (`routes/chm.py` alone 935). Frontend ≈ 1
 
 ---
 
-## 4. Mapping to the Sylverra spec — what already exists
+## 4. Mapping to the Sylithe spec — what already exists
 
-| Sylverra module | Reusable today | Gap |
+| Sylithe module | Reusable today | Gap |
 |---|---|---|
 | **M1 Company Carbon Intelligence** | CorporateDashboard, ESG scope UI (static) | No company entity, no document ingestion, no extraction, no evidence model |
 | **M2 Carbon Project Rating** | `projects_cache` (Verra + GS India), ProjectsRegistry page, `land-summary` already emits an AAA–D grade | Rating is one LLM call on satellite facts only — no documents (PDD/MR/VR), no dimensions, no evidence, no versioning |
@@ -83,7 +83,7 @@ Size: backend ≈ 4.1 k lines Python (`routes/chm.py` alone 935). Frontend ≈ 1
 
 ### 5.2 Findings
 
-| # | Finding | Impact | Fix (Sylverra design) |
+| # | Finding | Impact | Fix (Sylithe design) |
 |---|---|---|---|
 | A1 | **No caching of LLM output.** Same polygon + same facts re-billed every time; the PDF flow calls both endpoints. | 💰 Cost ×N per repeat view | Cache key = `sha256(model + prompt_version + facts)` in Mongo/Redis; facts are deterministic so hit-rate is high |
 | A2 | **Reasoning model for prose.** `report-analysis` uses `deepseek-v4-pro` with 8 k max tokens → gunicorn needed 180 s timeout (see `gunicorn.conf.py`). Task is templated narrative over pre-computed numbers — no deep reasoning needed. | ⏱ 60–90 s latency (per repo comment), 💰 reasoning tokens | Model routing: small/fast model for narrative; reserve reasoning tier for rating adjudication only |
@@ -108,7 +108,7 @@ Size: backend ≈ 4.1 k lines Python (`routes/chm.py` alone 935). Frontend ≈ 1
 |---|---|---|
 | D1 | `/projects` search uses unanchored case-insensitive `$regex` on 4 fields → collection scan | Mongo text index or Atlas Search; later Postgres FTS |
 | D2 | Registry refresh deletes then re-inserts all India projects (`delete_many` + `insert_many`) → brief empty window | Upsert by project id |
-| D3 | Only India projects cached | Expand as Sylverra scope grows |
+| D3 | Only India projects cached | Expand as Sylithe scope grows |
 
 ---
 
@@ -116,7 +116,7 @@ Size: backend ≈ 4.1 k lines Python (`routes/chm.py` alone 935). Frontend ≈ 1
 
 - Admin emails and "unlimited" emails are **hard-coded in `config.py`**. Move to DB/env with RBAC roles.
 - No tenant isolation concept yet.
-- Documents are not yet ingested, so prompt-injection surface is small today; it becomes the main risk once PDD / annual-report ingestion starts (Sylverra agents must treat documents as untrusted data).
+- Documents are not yet ingested, so prompt-injection surface is small today; it becomes the main risk once PDD / annual-report ingestion starts (Sylithe agents must treat documents as untrusted data).
 
 ---
 
@@ -133,4 +133,4 @@ Size: backend ≈ 4.1 k lines Python (`routes/chm.py` alone 935). Frontend ≈ 1
 
 ## 8. Next step
 
-Phase 2 — Research (spec §3, §41–43): competitors, registry/data sources and licensing, current LLM pricing/latency (to size the model-routing tiers), and AI-agent architecture patterns for cost/latency. Output goes to `sylverra/research/`.
+Phase 2 — Research (spec §3, §41–43): competitors, registry/data sources and licensing, current LLM pricing/latency (to size the model-routing tiers), and AI-agent architecture patterns for cost/latency. Output goes to `sylithe-docs/research/`.

@@ -1,7 +1,7 @@
-# Sylverra Project Rating v0.1
+# Sylithe Project Rating v0.1
 
 > Spec §13–§17, §28–§30, §53–§54. Implemented in `sylithe-backend/services/project_rating.py`.
-> *This is a Sylverra analytical assessment based on available evidence. It is not a registry certification
+> *This is a Sylithe analytical assessment based on available evidence. It is not a registry certification
 > or a replacement for formal validation/verification.*
 
 ## Pipeline

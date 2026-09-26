@@ -1,4 +1,4 @@
-# Sylverra Company Carbon Rating v0.1
+# Sylithe Company Carbon Rating v0.1
 
 > Spec §11–§12, §30, §52–§53. Implemented in `sylithe-backend/services/company_rating.py`.
 > Scores are computed by code from stored, evidence-linked metrics. No LLM sets a score.
